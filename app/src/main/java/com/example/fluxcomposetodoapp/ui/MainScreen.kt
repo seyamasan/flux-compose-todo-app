@@ -39,54 +39,53 @@ fun MainScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
-                Row(
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = isChecked,
+                    onCheckedChange = onCheckedChange
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+
+                TextField(
+                    value = inputText,
+                    onValueChange = onInputChange,
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                        .weight(1f),
+                    placeholder = { Text(text = "What needs to be done?") },
+                    maxLines = 1,
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = onAddClick
                 ) {
-                    Checkbox(
-                        checked = isChecked,
-                        onCheckedChange = onCheckedChange
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    TextField(
-                        value = inputText,
-                        onValueChange = onInputChange,
-                        modifier = Modifier
-                            .weight(1f),
-                        placeholder = { Text(text = "What needs to be done?") },
-                        maxLines = 1,
-                        singleLine = true
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = onAddClick
-                    ) {
-                        Text(text = "Add")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    items(itemList) { item ->
-                        Text(
-                            text = item,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxWidth()
-                        )
-                    }
+                    Text(text = "Add")
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                items(itemList) { item ->
+                    Text(
+                        text = item,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
+
 
             Button(
                 onClick = onClearCompletedClick,
