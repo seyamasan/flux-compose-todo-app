@@ -46,7 +46,6 @@ class Dispatcher {
         _storeChangeFlow.emit(changeEvent)
     }
 
-
     private suspend fun post(action: Action) {
         _actionFlow.emit(action)
     }

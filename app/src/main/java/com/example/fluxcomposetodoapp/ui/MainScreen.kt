@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.fluxcomposetodoapp.model.Todo
 import com.example.fluxcomposetodoapp.ui.theme.FluxComposeTodoAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +37,7 @@ fun MainScreen(
     onCheckedChange: (Boolean) -> Unit,
     onAddClick: () -> Unit,
     onClearCompletedClick: () -> Unit,
-    itemList: List<String>
+    itemList: List<Todo>
 ) {
     Scaffold(
         topBar = {
@@ -74,9 +75,8 @@ fun MainScreen(
                     onValueChange = onInputChange,
                     modifier = Modifier
                         .weight(1f),
-                    placeholder = { Text(text = "What needs to be done?") },
-                    maxLines = 1,
-                    singleLine = true
+                    placeholder = { Text(text = "Enter your Todo.") },
+                    singleLine = true // Line breaks are invalid. 改行は無効
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -97,7 +97,7 @@ fun MainScreen(
             ) {
                 items(itemList) { item ->
                     Text(
-                        text = item,
+                        text = item.text,
                         modifier = Modifier
                             .padding(8.dp)
                             .fillMaxWidth()

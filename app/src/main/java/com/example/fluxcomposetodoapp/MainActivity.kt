@@ -11,6 +11,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.example.fluxcomposetodoapp.actions.ActionsCreator
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
+import com.example.fluxcomposetodoapp.model.Todo
 import com.example.fluxcomposetodoapp.stores.TodoStore
 import com.example.fluxcomposetodoapp.ui.MainScreen
 import com.example.fluxcomposetodoapp.ui.theme.FluxComposeTodoAppTheme
@@ -24,6 +25,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var actionsCreator: ActionsCreator
     private lateinit var todoStore: TodoStore
 
+    // CoroutineScope for executing coroutines in UI threads.
     // UIスレッドでコルーチンを実行するためのCoroutineScope
     private val addTodoScope = CoroutineScope(Dispatchers.Main)
 
@@ -36,14 +38,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             FluxComposeTodoAppTheme {
                 var inputText by rememberSaveable { mutableStateOf("") }
+                var itemList by rememberSaveable { mutableStateOf<List<Todo>>(listOf()) }
 
-                // Subscribe to TodoStore change events
+                // Subscribe to TodoStore change events.
                 // TodoStoreの変更イベントを購読
                 LaunchedEffect(Unit) {
                     todoStore.storeChangeFlow.collect { _ ->
-                        // イベントが発生したときにUIを更新したい
-                        val a = todoStore.getTodos()
-                        print(a)
+                        // Substituting a copy with toList() will recompose it.
+                        // toList()でコピーしたものを代入すると再コンポーズできる
+                        itemList = todoStore.getTodos().toList()
                     }
                 }
 
@@ -58,7 +61,7 @@ class MainActivity : ComponentActivity() {
                         addTodo(inputText)
                     },
                     onClearCompletedClick = {},
-                    itemList = listOf()
+                    itemList = itemList
                 )
             }
         }

@@ -32,6 +32,8 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
         // Subscribe to Dispatcher actionFlow
         // DispatcherのactionFlowを購読
         CoroutineScope(Dispatchers.Main).launch {
+            // collect is a suspend function and must be executed in a coroutine.
+            // collect は suspend 関数であるため、コルーチン内で実行する必要があります。
             dispatcher.actionFlow.collect { action ->
                 onAction(action)
             }
