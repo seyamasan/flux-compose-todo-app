@@ -5,6 +5,11 @@ import com.example.fluxcomposetodoapp.stores.Store
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
+/**
+ * Dispatcher
+ * The Dispatcher receives the Action fired from the View and notifies the Store.
+ * Viewから発火されたActionをDispatcherが受け取り、Storeに通知する
+ **/
 class Dispatcher {
 
     private val _actionFlow = MutableSharedFlow<Action>()

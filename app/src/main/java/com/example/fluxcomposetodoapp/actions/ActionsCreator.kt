@@ -3,6 +3,11 @@ package com.example.fluxcomposetodoapp.actions
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 import com.example.fluxcomposetodoapp.model.Todo
 
+/**
+ * Action
+ * Receives actions from the View and passes them to the Dispatcher.
+ * Viewから発火したアクションをDispatcherに渡す
+ **/
 class ActionsCreator private constructor(
     private val dispatcher: Dispatcher
 ) {

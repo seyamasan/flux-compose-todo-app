@@ -10,6 +10,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Store
+ * Receive notification from the Dispatcher, process it, and then notify the View.
+ * Dispatcherから通知を受け取り、処理をした後にViewに通知する
+ **/
 class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
 
     private val todos = mutableListOf<Todo>()

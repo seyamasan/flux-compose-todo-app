@@ -19,7 +19,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
+/**
+ * View
+ * Subscribe to the Store and update the View according to its status.
+ * Storeを購読して、その状態に応じてViewを更新する
+ **/
 class MainActivity : ComponentActivity() {
     private lateinit var dispatcher: Dispatcher
     private lateinit var actionsCreator: ActionsCreator

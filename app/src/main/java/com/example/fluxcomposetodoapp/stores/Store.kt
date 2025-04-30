@@ -3,11 +3,11 @@ package com.example.fluxcomposetodoapp.stores
 import com.example.fluxcomposetodoapp.actions.Action
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 
-/*
-About suspend
-suspendについて
-https://developer.android.com/kotlin/coroutines/coroutines-adv?hl=ja
-*/
+/**
+ * About suspend
+ * suspendについて
+ * https://developer.android.com/kotlin/coroutines/coroutines-adv?hl=ja
+ **/
 
 abstract class Store(
     private val dispatcher: Dispatcher
