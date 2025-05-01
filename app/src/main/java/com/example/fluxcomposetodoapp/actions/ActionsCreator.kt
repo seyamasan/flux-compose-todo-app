@@ -4,9 +4,9 @@ import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 import com.example.fluxcomposetodoapp.model.Todo
 
 /**
- * Action
- * Receives actions from the View and passes them to the Dispatcher.
- * Viewから発火したアクションをDispatcherに渡す
+ * ActionsCreator
+ * Pass operations from the View to the Dispatcher.
+ * Viewからの操作をDispatcherに渡す
  **/
 class ActionsCreator private constructor(
     private val dispatcher: Dispatcher
@@ -15,54 +15,84 @@ class ActionsCreator private constructor(
         private var instance: ActionsCreator? = null
 
         fun get(dispatcher: Dispatcher): ActionsCreator {
+            // Synchronized to control exclusivity so that there are not multiple instances. Singleton is realized.
+            // synchronizedでインスタンスが複数にならないように排他制御をする。シングルトンを実現。
             return instance ?: synchronized(this) {
                 instance ?: ActionsCreator(dispatcher).also { instance = it }
             }
         }
     }
 
-    suspend fun create(text: String) {
+    suspend fun create(data: Pair<String, Boolean>) {
         dispatcher.dispatch(
-            TodoActions.TODO_CREATE,
-            TodoActions.KEY_TEXT,
-            text
+            createAction(
+                TodoActionType.TODO_CREATE,
+                hashMapOf(TodoActionKeys.KEY_TEXT to data)
+            )
         )
     }
 
     suspend fun destroy(id: Long) {
         dispatcher.dispatch(
-            TodoActions.TODO_DESTROY,
-            TodoActions.KEY_ID,
-            id
+            createAction(
+                type = TodoActionType.TODO_DESTROY,
+                data = hashMapOf(TodoActionKeys.KEY_ID to id)
+            )
         )
     }
 
     suspend fun undoDestroy() {
         dispatcher.dispatch(
-            TodoActions.TODO_UNDO_DESTROY
+            createAction(
+                type = TodoActionType.TODO_UNDO_DESTROY,
+                data = null
+            )
         )
     }
 
     suspend fun toggleComplete(todo: Todo) {
         val id = todo.id
         val actionType = if (todo.complete) {
-            TodoActions.TODO_UNDO_COMPLETE
+            TodoActionType.TODO_UNDO_COMPLETE
         } else {
-            TodoActions.TODO_COMPLETE
+            TodoActionType.TODO_COMPLETE
         }
 
         dispatcher.dispatch(
-            actionType,
-            TodoActions.KEY_ID,
-            id
+            createAction(
+                type = actionType,
+                data = hashMapOf(TodoActionKeys.KEY_ID to id)
+            )
         )
     }
 
     suspend fun toggleCompleteAll() {
-        dispatcher.dispatch(TodoActions.TODO_TOGGLE_COMPLETE_ALL)
+        dispatcher.dispatch(
+            createAction(
+                type = TodoActionType.TODO_TOGGLE_COMPLETE_ALL,
+                data = null
+            )
+        )
     }
 
     suspend fun destroyCompleted() {
-        dispatcher.dispatch(TodoActions.TODO_DESTROY_COMPLETED)
+        dispatcher.dispatch(
+            createAction(
+                type = TodoActionType.TODO_DESTROY_COMPLETED,
+                data = null
+            )
+        )
+    }
+
+    private fun createAction(type: TodoActionType, data: HashMap<String, Any>?):  Action {
+        val actionBuilder = Action.type(type)
+
+        data?.let {
+            it.forEach { (key, value) ->
+                actionBuilder.setData(key, value)
+            }
+        }
+
+        return actionBuilder.build()
     }
 }

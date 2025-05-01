@@ -1,40 +1,39 @@
 package com.example.fluxcomposetodoapp.actions
 
+/**
+ * Action
+ * A class that generates data structures (action objects) to convey operations from the View.
+ * Viewからの操作を伝達するためのデータ構造（アクションオブジェクト）を生成するクラス
+ **/
 class Action private constructor(
-    val type: String,
+    val type: TodoActionType,
     val data: HashMap<String, Any>
 ) {
     companion object {
-        fun type(type: String): Builder {
+        fun type(type: TodoActionType): Builder {
             return Builder().with(type)
         }
     }
 
     class Builder {
-        private var type: String? = null
+        private var type: TodoActionType? = null
         private var data: HashMap<String, Any> = HashMap()
 
-        fun with(type: String): Builder {
+        fun with(type: TodoActionType): Builder {
             this.type = type
             this.data = HashMap()
             return this
         }
 
-        fun bundle(key: String, value: Any): Builder {
+        fun setData(key: String, value: Any) {
             data[key] = value
-            return this
         }
 
         fun build(): Action {
-            val exception = IllegalArgumentException(
-                "At least one key is required.\n" +
-                "（少なくとも1つのキーが必要です。）"
+            val finalType = type ?: throw IllegalArgumentException(
+                "Type is null.\n" +
+                "（typeがnullです。）"
             )
-            val finalType = type ?: throw exception
-
-            if (finalType.isEmpty()) {
-                throw exception
-            }
 
             return Action(finalType, data)
         }

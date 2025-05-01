@@ -1,7 +1,8 @@
 package com.example.fluxcomposetodoapp.stores
 
 import com.example.fluxcomposetodoapp.actions.Action
-import com.example.fluxcomposetodoapp.actions.TodoActions
+import com.example.fluxcomposetodoapp.actions.TodoActionKeys
+import com.example.fluxcomposetodoapp.actions.TodoActionType
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 import com.example.fluxcomposetodoapp.model.Todo
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,8 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
 
     private val todos = mutableListOf<Todo>()
     private var lastDeleted: Todo? = null
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+
     private val _storeChangeFlow = MutableSharedFlow<StoreChangeEvent>()
     val storeChangeFlow: SharedFlow<StoreChangeEvent> = _storeChangeFlow
 
@@ -36,7 +39,7 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
     init {
         // Subscribe to Dispatcher actionFlow
         // DispatcherのactionFlowを購読
-        CoroutineScope(Dispatchers.Main).launch {
+        coroutineScope.launch {
             // collect is a suspend function and must be executed in a coroutine.
             // collect は suspend 関数であるため、コルーチン内で実行する必要があります。
             dispatcher.actionFlow.collect { action ->
@@ -46,7 +49,7 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
 
         // Subscribe to Dispatcher storeChangeFlow
         // DispatcherのstoreChangeFlowを購読
-        CoroutineScope(Dispatchers.Main).launch {
+        coroutineScope.launch {
             dispatcher.storeChangeFlow.collect { storeChangeEvent ->
                 _storeChangeFlow.emit(storeChangeEvent)
             }
@@ -59,35 +62,35 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
 
     override suspend fun onAction(action: Action) {
         when (action.type) {
-            TodoActions.TODO_CREATE -> {
-                val text = action.data[TodoActions.KEY_TEXT] as String
-                create(text)
+            TodoActionType.TODO_CREATE -> {
+                val data = action.data[TodoActionKeys.KEY_TEXT] as Pair<*, *> // first(text: String), second(complete: Boolean)
+                create(data)
                 emitStoreChange()
             }
-            TodoActions.TODO_DESTROY -> {
-                val id = action.data[TodoActions.KEY_ID] as Long
+            TodoActionType.TODO_DESTROY -> {
+                val id = action.data[TodoActionKeys.KEY_ID] as Long
                 destroy(id)
                 emitStoreChange()
             }
-            TodoActions.TODO_UNDO_DESTROY -> {
+            TodoActionType.TODO_UNDO_DESTROY -> {
                 undoDestroy()
                 emitStoreChange()
             }
-            TodoActions.TODO_COMPLETE -> {
-                val id = action.data[TodoActions.KEY_ID] as Long
+            TodoActionType.TODO_COMPLETE -> {
+                val id = action.data[TodoActionKeys.KEY_ID] as Long
                 updateComplete(id, true)
                 emitStoreChange()
             }
-            TodoActions.TODO_UNDO_COMPLETE -> {
-                val id = action.data[TodoActions.KEY_ID] as Long
+            TodoActionType.TODO_UNDO_COMPLETE -> {
+                val id = action.data[TodoActionKeys.KEY_ID] as Long
                 updateComplete(id, false)
                 emitStoreChange()
             }
-            TodoActions.TODO_DESTROY_COMPLETED -> {
+            TodoActionType.TODO_DESTROY_COMPLETED -> {
                 destroyCompleted()
                 emitStoreChange()
             }
-            TodoActions.TODO_TOGGLE_COMPLETE_ALL -> {
+            TodoActionType.TODO_TOGGLE_COMPLETE_ALL -> {
                 updateCompleteAll()
                 emitStoreChange()
             }
@@ -121,9 +124,13 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
         }
     }
 
-    private fun create(text: String) {
+    private fun create(data: Pair<*, *>) {
         val id = System.currentTimeMillis()
-        val todo = Todo(id, text)
+        val todo = Todo(
+            id = id,
+            text = data.first as String,
+            complete = data.second as Boolean
+        )
         addElement(todo)
     }
 

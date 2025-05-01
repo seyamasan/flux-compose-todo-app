@@ -1,6 +1,7 @@
 package com.example.fluxcomposetodoapp.dispatcher
 
 import com.example.fluxcomposetodoapp.actions.Action
+import com.example.fluxcomposetodoapp.actions.TodoActionType
 import com.example.fluxcomposetodoapp.stores.Store
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,22 +29,7 @@ class Dispatcher {
         }
     }
 
-    suspend fun dispatch(type: String, vararg data: Any) {
-        if (data.size % 2 != 0) {
-            throw IllegalArgumentException(
-                "Data must be a valid list of key,value pairs.\n" +
-                "（データは key と value のペアのリストである必要があります）"
-            )
-        }
-
-        val actionBuilder = Action.type(type)
-        var i = 0
-        while (i < data.size) {
-            val key = data[i++] as String
-            val value = data[i++]
-            actionBuilder.bundle(key, value)
-        }
-        val action = actionBuilder.build()
+    suspend fun dispatch(action: Action) {
         post(action)
     }
 

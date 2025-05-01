@@ -20,25 +20,44 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 import com.example.fluxcomposetodoapp.model.Todo
+import com.example.fluxcomposetodoapp.stores.TodoStore
 import com.example.fluxcomposetodoapp.ui.theme.FluxComposeTodoAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    inputText: String,
-    onInputChange: (String) -> Unit,
-    isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    onAddClick: () -> Unit,
+    onAddClick: (Pair<String, Boolean>) -> Unit,
+    onMainCheckedChange: () -> Unit,
+    onCheckedChange: (Todo) -> Unit,
     onClearCompletedClick: () -> Unit,
-    itemList: List<Todo>
+    todoStore: TodoStore
 ) {
+    var isChecked by rememberSaveable { mutableStateOf(false) }
+    var inputText by rememberSaveable { mutableStateOf("") }
+    var itemList by rememberSaveable { mutableStateOf<List<Todo>>(listOf()) }
+
+    // Subscribe to TodoStore change events.
+    // TodoStoreの変更イベントを購読
+    LaunchedEffect(Unit) {
+        todoStore.storeChangeFlow.collect { _ ->
+            // Substituting a copy allows recomposition.
+            // コピーしたものを代入すると再コンポーズできる
+            itemList = todoStore.getTodos().map { it.copy() }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -66,13 +85,16 @@ fun MainScreen(
             ) {
                 Checkbox(
                     checked = isChecked,
-                    onCheckedChange = onCheckedChange
+                    onCheckedChange = {
+                        isChecked = it
+                        onMainCheckedChange()
+                    }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
 
                 TextField(
                     value = inputText,
-                    onValueChange = onInputChange,
+                    onValueChange = { inputText = it },
                     modifier = Modifier
                         .weight(1f),
                     placeholder = { Text(text = "Enter your Todo.") },
@@ -81,9 +103,7 @@ fun MainScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Button(
-                    onClick = onAddClick
-                ) {
+                Button(onClick = { onAddClick(Pair(inputText, isChecked)) }) {
                     Text(text = "Add")
                 }
             }
@@ -96,15 +116,16 @@ fun MainScreen(
                     .weight(1f)
             ) {
                 items(itemList) { item ->
-                    Text(
-                        text = item.text,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = item.complete,
+                            onCheckedChange = { onCheckedChange(item) }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = item.text)
+                    }
                 }
             }
-
 
             Button(
                 onClick = onClearCompletedClick,
@@ -123,13 +144,11 @@ fun MainScreen(
 fun GreetingPreview() {
     FluxComposeTodoAppTheme {
         MainScreen(
-            inputText = "Test input",
-            onInputChange = {},
-            isChecked = false,
-            onCheckedChange = {},
             onAddClick = {},
+            onMainCheckedChange = {},
+            onCheckedChange = {},
             onClearCompletedClick = {},
-            itemList = listOf()
+            todoStore = TodoStore(Dispatcher.get())
         )
     }
 }

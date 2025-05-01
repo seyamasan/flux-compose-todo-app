@@ -1,3 +1,3 @@
 Repository to study Flux.
 
-Jetpack Compose × Flux
+Jetpack Compose + Flux
