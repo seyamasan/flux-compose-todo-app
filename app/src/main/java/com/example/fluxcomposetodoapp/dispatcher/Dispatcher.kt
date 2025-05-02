@@ -1,7 +1,6 @@
 package com.example.fluxcomposetodoapp.dispatcher
 
 import com.example.fluxcomposetodoapp.actions.Action
-import com.example.fluxcomposetodoapp.actions.TodoActionType
 import com.example.fluxcomposetodoapp.stores.Store
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
