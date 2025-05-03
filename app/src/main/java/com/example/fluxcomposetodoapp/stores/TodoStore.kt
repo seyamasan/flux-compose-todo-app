@@ -60,6 +60,10 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
 
     fun canUndo(): Boolean = lastDeleted != null
 
+    fun resetLastDeleted() {
+        lastDeleted = null
+    }
+
     override suspend fun onAction(action: Action) {
         when (action.type) {
             TodoActionType.TODO_CREATE -> {

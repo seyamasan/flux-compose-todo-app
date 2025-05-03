@@ -11,11 +11,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -23,10 +32,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,19 +46,25 @@ import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 import com.example.fluxcomposetodoapp.model.Todo
 import com.example.fluxcomposetodoapp.stores.TodoStore
 import com.example.fluxcomposetodoapp.ui.theme.FluxComposeTodoAppTheme
+import com.example.fluxcomposetodoapp.utility.ValidateInputUtility
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     onAddClick: (Pair<String, Boolean>) -> Unit,
-    onMainCheckedChange: () -> Unit,
+    onDestroyClick: (Long) -> Unit,
+    onUndoDestroyClick: () -> Unit,
     onCheckedChange: (Todo) -> Unit,
+    onMainCheckedChange: () -> Unit,
     onClearCompletedClick: () -> Unit,
     todoStore: TodoStore
 ) {
     var isChecked by rememberSaveable { mutableStateOf(false) }
     var inputText by rememberSaveable { mutableStateOf("") }
     var itemList by rememberSaveable { mutableStateOf<List<Todo>>(listOf()) }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Subscribe to TodoStore change events.
     // TodoStoreの変更イベントを購読
@@ -55,6 +73,21 @@ fun MainScreen(
             // Substituting a copy allows recomposition.
             // コピーしたものを代入すると再コンポーズできる
             itemList = todoStore.getTodos().map { it.copy() }
+
+            if (todoStore.canUndo()) {
+                scope.launch {
+                    val result = snackbarHostState
+                        .showSnackbar(
+                            message = "Element deleted.",
+                            actionLabel = "Undo",
+                            duration = SnackbarDuration.Short
+                        )
+                    when (result) {
+                        SnackbarResult.ActionPerformed -> { onUndoDestroyClick() }
+                        SnackbarResult.Dismissed -> { todoStore.resetLastDeleted() }
+                    }
+                }
+            }
         }
     }
 
@@ -70,7 +103,8 @@ fun MainScreen(
                     )
                 }
             )
-         },
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         Column(
@@ -80,6 +114,7 @@ fun MainScreen(
         ) {
             Row(
                 modifier = Modifier
+                    .padding(8.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -90,6 +125,7 @@ fun MainScreen(
                         onMainCheckedChange()
                     }
                 )
+
                 Spacer(modifier = Modifier.width(8.dp))
 
                 TextField(
@@ -103,7 +139,14 @@ fun MainScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Button(onClick = { onAddClick(Pair(inputText, isChecked)) }) {
+                Button(
+                    onClick = {
+                        if (ValidateInputUtility.checkEmpty(inputText)) {
+                            onAddClick(Pair(inputText, isChecked))
+                            inputText = ""
+                        }
+                    }
+                ) {
                     Text(text = "Add")
                 }
             }
@@ -112,18 +155,36 @@ fun MainScreen(
 
             LazyColumn(
                 modifier = Modifier
+                    .padding(8.dp)
                     .fillMaxWidth()
                     .weight(1f)
             ) {
                 items(itemList) { item ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = item.complete,
-                            onCheckedChange = { onCheckedChange(item) }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = item.text)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = item.complete,
+                                onCheckedChange = { onCheckedChange(item) }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = item.text)
+                        }
+                        IconButton(
+                            onClick = { onDestroyClick(item.id) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Destroy todo",
+                                tint = Color.Red
+                            )
+                        }
                     }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 }
             }
 
@@ -145,8 +206,10 @@ fun GreetingPreview() {
     FluxComposeTodoAppTheme {
         MainScreen(
             onAddClick = {},
-            onMainCheckedChange = {},
+            onDestroyClick = {},
+            onUndoDestroyClick = {},
             onCheckedChange = {},
+            onMainCheckedChange = {},
             onClearCompletedClick = {},
             todoStore = TodoStore(Dispatcher.get())
         )

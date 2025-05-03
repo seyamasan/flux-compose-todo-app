@@ -38,8 +38,10 @@ class MainActivity : ComponentActivity() {
             FluxComposeTodoAppTheme {
                 MainScreen(
                     onAddClick = { addTodo(it) },
-                    onMainCheckedChange = { checkAll() },
+                    onDestroyClick = { destroyTodo(it) },
+                    onUndoDestroyClick = { undoDestroy() },
                     onCheckedChange = { toggleComplete(it) },
+                    onMainCheckedChange = { toggleCompleteAll() },
                     onClearCompletedClick = { clearCompleted() },
                     todoStore = todoStore
                 )
@@ -57,16 +59,20 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun addTodo(data: Pair<String, Boolean>) {
-        if (validateInput(data.first)) {
-            coroutineScope.launch {
-                actionsCreator.create(data = data)
-            }
+        coroutineScope.launch {
+            actionsCreator.create(data = data)
         }
     }
 
-    private fun checkAll() {
+    private fun destroyTodo(id: Long) {
         coroutineScope.launch {
-            actionsCreator.toggleCompleteAll()
+            actionsCreator.destroy(id = id)
+        }
+    }
+
+    private fun undoDestroy() {
+        coroutineScope.launch {
+            actionsCreator.undoDestroy()
         }
     }
 
@@ -76,13 +82,15 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun toggleCompleteAll() {
+        coroutineScope.launch {
+            actionsCreator.toggleCompleteAll()
+        }
+    }
+
     private fun clearCompleted() {
         coroutineScope.launch {
             actionsCreator.destroyCompleted()
         }
-    }
-
-    private fun validateInput(inputText: String): Boolean {
-        return inputText.isNotEmpty()
     }
 }
