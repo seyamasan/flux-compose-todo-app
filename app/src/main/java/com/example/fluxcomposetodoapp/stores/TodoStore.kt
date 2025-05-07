@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
  **/
 class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
 
-    private val todos = mutableListOf<Todo>()
+    private var todos = mutableListOf<Todo>()
     private var lastDeleted: Todo? = null
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
@@ -57,6 +57,9 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
     }
 
     fun getTodos(): List<Todo> = todos
+    fun setTodo(list: MutableList<Todo>) {
+        todos = list
+    }
 
     fun canUndo(): Boolean = lastDeleted != null
 

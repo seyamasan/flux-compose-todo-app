@@ -9,10 +9,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -33,12 +31,6 @@ class TodoStoreTest {
         }
     }
 
-    @After
-    fun tearDown() {
-        // Must be used in @After tearDown().(@After tearDown()で使用する必要がある)
-        Dispatchers.resetMain() // Reset to the original Main Dispatcher.(元のMain Dispatcherにリセットする)
-    }
-
     @Test
     fun should_create_todo_when_receive_create_action() = runTest {
         // Create Action
@@ -53,5 +45,26 @@ class TodoStoreTest {
         assertThat(todos).hasSize(1)
         assertThat(todos[0].text).isEqualTo(fakeTodoText)
         assertThat(todos[0].complete).isFalse()
+    }
+
+    @Test
+    fun destroy_should_remove_todo_and_save_to_lastDeleted() = runTest {
+        todoStore.setTodo(mutableListOf())
+        
+        val fakeTodoText = "Destroy Todo"
+        val fakeTodoData = Pair(fakeTodoText, false)
+        val fakeActionBuilder = Action.type(TodoActionType.TODO_CREATE)
+        fakeActionBuilder.setData(TodoActionKeys.KEY_TEXT, fakeTodoData)
+
+        todoStore.onAction(fakeActionBuilder.build())
+
+        val createdTodoId = todoStore.getTodos().first().id
+
+        val fakeActionBuilder2 = Action.type(TodoActionType.TODO_DESTROY)
+        fakeActionBuilder2.setData(TodoActionKeys.KEY_ID, createdTodoId)
+        todoStore.onAction(fakeActionBuilder2.build())
+
+        assertThat(todoStore.getTodos()).isEmpty()
+        assertThat(todoStore.canUndo()).isTrue()
     }
 }
