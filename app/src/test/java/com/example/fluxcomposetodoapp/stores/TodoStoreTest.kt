@@ -4,9 +4,13 @@ import com.example.fluxcomposetodoapp.actions.Action
 import com.example.fluxcomposetodoapp.actions.TodoActionKeys
 import com.example.fluxcomposetodoapp.actions.TodoActionType
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
+import com.example.fluxcomposetodoapp.dispatcher.DispatcherTest
+import com.example.fluxcomposetodoapp.dispatcher.DispatcherTest.Companion
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -133,5 +137,29 @@ class TodoStoreTest {
 
         val revertedTodo = todoStore.getTodos().first()
         assertThat(revertedTodo.complete).isFalse()
+    }
+
+    @Test
+    fun update_complete_all_should_change_all_todo_completion_status() = runTest {
+        // Create
+        val fakeTodoText = "Change all completion status todo"
+        val fakeTodoData = Pair(fakeTodoText, false)
+        val fakeActionBuilder = Action.type(TodoActionType.TODO_CREATE)
+        fakeActionBuilder.setData(TodoActionKeys.KEY_TEXT, fakeTodoData)
+        val fakeAction = fakeActionBuilder.build()
+
+        repeat(2) {
+            todoStore.onAction(fakeAction)
+        }
+
+        // Complete All
+        val fakeCompleteAllActionBuilder = Action.type(TodoActionType.TODO_TOGGLE_COMPLETE_ALL)
+        todoStore.onAction(fakeCompleteAllActionBuilder.build())
+
+        val todoList = todoStore.getTodos()
+
+        todoList.forEach {
+            assertThat(it.complete).isTrue()
+        }
     }
 }
