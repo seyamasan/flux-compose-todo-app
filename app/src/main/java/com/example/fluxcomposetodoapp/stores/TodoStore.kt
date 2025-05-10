@@ -1,5 +1,6 @@
 package com.example.fluxcomposetodoapp.stores
 
+import androidx.annotation.VisibleForTesting
 import com.example.fluxcomposetodoapp.actions.Action
 import com.example.fluxcomposetodoapp.actions.TodoActionKeys
 import com.example.fluxcomposetodoapp.actions.TodoActionType
@@ -57,9 +58,6 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
     }
 
     fun getTodos(): List<Todo> = todos
-    fun setTodo(list: MutableList<Todo>) {
-        todos = list
-    }
 
     fun canUndo(): Boolean = lastDeleted != null
 
@@ -159,6 +157,14 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
 
     override fun changeEvent(): StoreChangeEvent {
         return TodoStoreChangeEvent()
+    }
+
+    // Access to this method shall be from the test or private scope only.
+    // このメソッドへのアクセスは、テストまたはプライベート・スコープからのみとする。
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+     fun reset() {
+        todos.clear()
+        lastDeleted = null
     }
 
     class TodoStoreChangeEvent : StoreChangeEvent

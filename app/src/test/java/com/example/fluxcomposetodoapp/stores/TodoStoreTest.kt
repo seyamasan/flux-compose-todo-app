@@ -5,12 +5,12 @@ import com.example.fluxcomposetodoapp.actions.TodoActionKeys
 import com.example.fluxcomposetodoapp.actions.TodoActionType
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 import com.google.common.truth.Truth.assertThat
-import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -26,21 +26,24 @@ class TodoStoreTest {
         @BeforeClass
         fun setup() {
             Dispatchers.setMain(testDispatcher) // Replace Main Dispatcher with Dispatcher for Test.(Main DispatcherをTest用のDispatcherに置き換える)
-            dispatcher = mockk(relaxed = true)
+            dispatcher = Dispatcher.get()
             todoStore = TodoStore(dispatcher)
         }
     }
 
+    //　Post-processing per test.(テストごとの後処理)
+    @After
+    fun tearDown() {
+        todoStore.reset()
+    }
+
     @Test
     fun should_create_todo_when_receive_create_action() = runTest {
-        resetTodoList()
-
         // Create Action
         val fakeTodoText = "New Todo"
         val fakeTodoData = Pair(fakeTodoText, false)
         val fakeActionBuilder = Action.type(TodoActionType.TODO_CREATE)
         fakeActionBuilder.setData(TodoActionKeys.KEY_TEXT, fakeTodoData)
-
         todoStore.onAction(fakeActionBuilder.build())
 
         val todos = todoStore.getTodos()
@@ -51,8 +54,7 @@ class TodoStoreTest {
 
     @Test
     fun destroy_should_remove_todo_and_save_to_lastDeleted() = runTest {
-        resetTodoList()
-
+        // Create
         val fakeTodoText = "Destroy Todo"
         val fakeTodoData = Pair(fakeTodoText, false)
         val fakeActionBuilder = Action.type(TodoActionType.TODO_CREATE)
@@ -62,6 +64,7 @@ class TodoStoreTest {
 
         val createdTodoId = todoStore.getTodos().first().id
 
+        // Destroy
         val fakeActionBuilder2 = Action.type(TodoActionType.TODO_DESTROY)
         fakeActionBuilder2.setData(TodoActionKeys.KEY_ID, createdTodoId)
         todoStore.onAction(fakeActionBuilder2.build())
@@ -72,8 +75,6 @@ class TodoStoreTest {
 
     @Test
     fun undo_destroy_should_restore_last_deleted_todo() = runTest {
-        resetTodoList()
-
         // Create
         val fakeTodoText = "Restore Todo"
         val fakeTodoData = Pair(fakeTodoText, false)
@@ -107,8 +108,6 @@ class TodoStoreTest {
 
     @Test
     fun update_complete_should_change_todo_completion_status() = runTest {
-        resetTodoList()
-
         // Create
         val fakeTodoText = "Change completion status todo"
         val fakeTodoData = Pair(fakeTodoText, false)
@@ -134,9 +133,5 @@ class TodoStoreTest {
 
         val revertedTodo = todoStore.getTodos().first()
         assertThat(revertedTodo.complete).isFalse()
-    }
-
-    private fun resetTodoList() {
-        todoStore.setTodo(mutableListOf())
     }
 }
