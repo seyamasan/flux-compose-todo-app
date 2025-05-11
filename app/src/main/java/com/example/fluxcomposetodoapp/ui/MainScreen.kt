@@ -135,7 +135,8 @@ fun MainScreen(
                     value = inputText,
                     onValueChange = { inputText = it },
                     modifier = Modifier
-                        .weight(1f),
+                        .weight(1f)
+                        .semantics { contentDescription = "Input Text Field" },
                     placeholder = { Text(text = "Enter your Todo.") },
                     singleLine = true // Line breaks are invalid. 改行は無効
                 )
