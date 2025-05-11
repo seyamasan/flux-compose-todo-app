@@ -4,17 +4,15 @@ import com.example.fluxcomposetodoapp.actions.Action
 import com.example.fluxcomposetodoapp.actions.TodoActionKeys
 import com.example.fluxcomposetodoapp.actions.TodoActionType
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
-import com.example.fluxcomposetodoapp.dispatcher.DispatcherTest
-import com.example.fluxcomposetodoapp.dispatcher.DispatcherTest.Companion
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -32,6 +30,12 @@ class TodoStoreTest {
             Dispatchers.setMain(testDispatcher) // Replace Main Dispatcher with Dispatcher for Test.(Main DispatcherをTest用のDispatcherに置き換える)
             dispatcher = Dispatcher.get()
             todoStore = TodoStore(dispatcher)
+        }
+
+        @JvmStatic
+        @AfterClass
+        fun testEnd() {
+            Dispatchers.resetMain()
         }
     }
 

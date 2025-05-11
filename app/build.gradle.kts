@@ -47,6 +47,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    testOptions {
+        unitTests { isIncludeAndroidResources = true }
+    }
 }
 
 dependencies {
@@ -59,6 +63,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.ui.test.junit4.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,4 +78,9 @@ dependencies {
 
     // Mock(モック)
     testImplementation(libs.mockk)
+
+    // Robolectric
+    // A testing framework that allows Android tests to be executed without the use of a real device or emulator.
+    // 実機やエミュレータを使わずにAndroidテストを実行できるテストフレームワーク
+    testImplementation(libs.robolectric)
 }
