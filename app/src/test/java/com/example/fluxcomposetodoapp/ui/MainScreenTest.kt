@@ -6,7 +6,7 @@ import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.isOff
 import androidx.compose.ui.test.isOn
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
@@ -14,30 +14,88 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import com.example.fluxcomposetodoapp.MainActivity
-import org.junit.FixMethodOrder
+import com.example.fluxcomposetodoapp.actions.ActionsCreator
+import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
+import com.example.fluxcomposetodoapp.stores.TodoStore
+import com.example.fluxcomposetodoapp.ui.theme.FluxComposeTodoAppTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.runners.MethodSorters
 import org.robolectric.RobolectricTestRunner
 
-/**
- * @FixMethodOrder(MethodSorters.NAME_ASCENDING)
- * Sorts the test methods by the method name, in lexicographic order, with Method. toString() used as a tiebreaker.
- * メソッド名でテストメソッドの実行順を辞書順に並べ替えてくれる。
- **/
 @RunWith(RobolectricTestRunner::class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainScreenTest {
 
     @get:Rule
-    val composeTestRule = createAndroidComposeRule<MainActivity>()
+    val composeTestRule = createComposeRule()
+
+    private val testDispatcher = UnconfinedTestDispatcher()
+
+    @Before
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+
+        val dispatcher = Dispatcher.get()
+        val actionsCreator = ActionsCreator.get(dispatcher)
+        val todoStore = TodoStore.get(dispatcher)
+        todoStore.reset()
+
+        composeTestRule.setContent {
+            FluxComposeTodoAppTheme {
+                MainScreen(
+                    onAddClick = {
+                        CoroutineScope(testDispatcher).launch {
+                            actionsCreator.create(data = Pair(it.first, it.second))
+                        }
+                    },
+                    onDestroyClick = {
+                        CoroutineScope(testDispatcher).launch {
+                            actionsCreator.destroy(id = it)
+                        }
+                    },
+                    onUndoDestroyClick = {
+                        CoroutineScope(testDispatcher).launch {
+                            actionsCreator.undoDestroy()
+                        }
+                    },
+                    onCheckedChange = {
+                        CoroutineScope(testDispatcher).launch {
+                            actionsCreator.toggleComplete(it)
+                        }
+                    },
+                    onMainCheckedChange = {
+                        CoroutineScope(testDispatcher).launch {
+                            actionsCreator.toggleCompleteAll()
+                        }
+                    },
+                    onClearCompletedClick = {
+                        CoroutineScope(testDispatcher).launch {
+                            actionsCreator.destroyCompleted()
+                        }
+                    },
+                    todoStore = todoStore
+                )
+            }
+        }
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
     @Test
-    fun a1_should_add_todo_when_input_text_and_click_add_button() {
-        printlnTestFuncName(name = "a1_should_add_todo_when_input_text_and_click_add_button")
-
+    fun should_add_todo_when_input_text_and_click_add_button() {
         composeTestRule
             .onNodeWithContentDescription("Input Text Field")
             .performTextInput("Test Add Todo")
@@ -72,9 +130,7 @@ class MainScreenTest {
     }
 
     @Test
-    fun a2_should_delete_todo_when_click_destroy_button() {
-        printlnTestFuncName(name = "a2_should_add_todo_when_input_text_and_click_add_button")
-
+    fun should_delete_todo_when_click_destroy_button() {
         composeTestRule
             .onNodeWithContentDescription("Input Text Field")
             .performTextInput("Test Delete Todo")
@@ -94,9 +150,7 @@ class MainScreenTest {
     }
 
     @Test
-    fun a3_should_toggle_todo_when_click_checkbox() {
-        printlnTestFuncName(name = "a3_should_add_todo_when_input_text_and_click_add_button")
-
+    fun should_toggle_todo_when_click_checkbox() {
         composeTestRule
             .onNodeWithContentDescription("Input Text Field")
             .performTextInput("Test Toggle Todo")
@@ -117,9 +171,7 @@ class MainScreenTest {
     }
 
     @Test
-    fun a4_should_toggle_all_todos_when_click_all_checkbox() {
-        printlnTestFuncName(name = "a4_should_add_todo_when_input_text_and_click_add_button")
-
+    fun should_toggle_all_todos_when_click_all_checkbox() {
         composeTestRule
             .onNodeWithContentDescription("Input Text Field")
             .performTextInput("Todo 1")
@@ -150,70 +202,60 @@ class MainScreenTest {
             .onAllNodesWithContentDescription("Todo Check Box")
             .assertAll(isOff())
     }
-//
-//    @Test
-//    fun a5_should_clear_completed_todos() {
-//        printlnTestFuncName(name = "a5_should_clear_completed_todos")
-//
-//        composeTestRule
-//            .onNodeWithContentDescription("Input Text Field")
-//            .performTextInput("Completed Todo")
-//        composeTestRule
-//            .onNodeWithText("Add")
-//            .performClick()
-//        composeTestRule
-//            .onAllNodesWithContentDescription("Todo Check Box")
-//            .onLast()
-//            .performClick()
-//
-//        composeTestRule
-//            .onNodeWithContentDescription("Input Text Field")
-//            .performTextInput("Incomplete Todo")
-//        composeTestRule
-//            .onNodeWithText("Add")
-//            .performClick()
-//
-//        composeTestRule
-//            .onNodeWithText("Clear completed")
-//            .performClick()
-//
-//        composeTestRule
-//            .onAllNodesWithText("Completed Todo")
-//            .assertCountEquals(0)
-//
-//        composeTestRule
-//            .onAllNodesWithText("Incomplete Todo")
-//            .assertCountEquals(1)
-//    }
-//
-//    @Test
-//    fun a6_should_undo_deleted_todo() {
-//        printlnTestFuncName(name = "a6_should_clear_completed_todos")
-//
-//        composeTestRule
-//            .onNodeWithText("Enter your Todo.")
-//            .performTextInput("Undo Deleted Todo")
-//        composeTestRule
-//            .onNodeWithText("Add")
-//            .performClick()
-//
-//        composeTestRule
-//            .onAllNodesWithContentDescription("Destroy todo")
-//            .onLast()
-//            .performClick()
-//
-//        composeTestRule
-//            .onNodeWithText("Undo")
-//            .performClick()
-//
-//        composeTestRule
-//            .onAllNodesWithText("Undo Deleted Todo")
-//            .assertCountEquals(1)
-//    }
 
-    private fun printlnTestFuncName(name: String) {
-        println("==========================================")
-        println("Test starting: $name")
-        println("==========================================")
+    @Test
+    fun should_clear_completed_todos() {
+        composeTestRule
+            .onNodeWithContentDescription("Input Text Field")
+            .performTextInput("Completed Todo")
+        composeTestRule
+            .onNodeWithText("Add")
+            .performClick()
+        composeTestRule
+            .onAllNodesWithContentDescription("Todo Check Box")
+            .onLast()
+            .performClick()
+
+        composeTestRule
+            .onNodeWithContentDescription("Input Text Field")
+            .performTextInput("Incomplete Todo")
+        composeTestRule
+            .onNodeWithText("Add")
+            .performClick()
+
+        composeTestRule
+            .onNodeWithText("Clear completed")
+            .performClick()
+
+        composeTestRule
+            .onAllNodesWithText("Completed Todo")
+            .assertCountEquals(0)
+
+        composeTestRule
+            .onAllNodesWithText("Incomplete Todo")
+            .assertCountEquals(1)
+    }
+
+    @Test
+    fun should_undo_deleted_todo() {
+        composeTestRule
+            .onNodeWithText("Enter your Todo.")
+            .performTextInput("Undo Deleted Todo")
+        composeTestRule
+            .onNodeWithText("Add")
+            .performClick()
+
+        composeTestRule
+            .onAllNodesWithContentDescription("Destroy todo")
+            .onLast()
+            .performClick()
+
+        composeTestRule
+            .onNodeWithText("Undo")
+            .performClick()
+
+        composeTestRule
+            .onAllNodesWithText("Undo Deleted Todo")
+            .assertCountEquals(1)
     }
 }

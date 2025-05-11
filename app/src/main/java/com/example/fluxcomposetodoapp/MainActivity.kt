@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
 
     private fun toggleComplete(todo: Todo) {
         coroutineScope.launch {
-            actionsCreator.toggleComplete(todo);
+            actionsCreator.toggleComplete(todo)
         }
     }
 
