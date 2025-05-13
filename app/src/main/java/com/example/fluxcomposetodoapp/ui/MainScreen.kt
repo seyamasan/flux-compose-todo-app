@@ -30,7 +30,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,13 +68,15 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Subscribe to TodoStore change events.
-    // TodoStoreの変更イベントを購読
-    val storeState by todoStore.storeChangeFlow.collectAsState()
-    LaunchedEffect(storeState) {
-        // Substituting a copy allows recomposition.
-        // コピーしたものを代入すると再コンポーズできる
-        itemList = todoStore.getTodos().map { it.copy() }
+    // Start when first displayed and continue receiving events.(初回表示時に開始してイベントを受け取り続ける)
+    LaunchedEffect(Unit) {
+        // Subscribe to TodoStore change events.
+        // TodoStoreの変更イベントを購読
+        todoStore.storeChangeFlow.collect {
+            // Substituting a copy allows recomposition.
+            // コピーしたものを代入すると再コンポーズできる
+            itemList = todoStore.getTodos().map { it.copy() }
+        }
     }
 
     Scaffold(
