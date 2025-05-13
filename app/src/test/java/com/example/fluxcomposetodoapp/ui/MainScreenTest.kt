@@ -130,6 +130,25 @@ class MainScreenTest {
     }
 
     @Test
+    fun should_add_empty_todo_when_input_empty_text_and_click_add_button() {
+        composeTestRule
+            .onNodeWithContentDescription("Input Text Field")
+            .performTextInput("")
+
+        composeTestRule
+            .onNodeWithText("Add")
+            .performClick()
+
+        composeTestRule
+            .onAllNodesWithContentDescription("Destroy todo")
+            .assertCountEquals(0)
+
+        composeTestRule
+            .onAllNodesWithContentDescription("Todo Check Box")
+            .assertCountEquals(0)
+    }
+
+    @Test
     fun should_delete_todo_when_click_destroy_button() {
         composeTestRule
             .onNodeWithContentDescription("Input Text Field")
