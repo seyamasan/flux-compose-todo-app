@@ -1,9 +1,10 @@
 package com.example.fluxcomposetodoapp.dispatcher
 
 import com.example.fluxcomposetodoapp.actions.Action
-import com.example.fluxcomposetodoapp.stores.Store
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import com.example.fluxcomposetodoapp.stores.Store.StoreChangeEvent
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Dispatcher
@@ -12,11 +13,11 @@ import kotlinx.coroutines.flow.SharedFlow
  **/
 class Dispatcher {
 
-    private val _actionFlow = MutableSharedFlow<Action>()
-    val actionFlow: SharedFlow<Action> = _actionFlow
+    private val _actionFlow = MutableStateFlow<Action?>(null)
+    val actionFlow: StateFlow<Action?> = _actionFlow.asStateFlow()
 
-    private val _storeChangeFlow = MutableSharedFlow<Store.StoreChangeEvent>()
-    val storeChangeFlow: SharedFlow<Store.StoreChangeEvent> = _storeChangeFlow
+    private val _storeChangeFlow = MutableStateFlow<StoreChangeEvent?>(null)
+    val storeChangeFlow: StateFlow<StoreChangeEvent?> = _storeChangeFlow.asStateFlow()
 
     companion object {
         private var instance: Dispatcher? = null
@@ -28,15 +29,15 @@ class Dispatcher {
         }
     }
 
-    suspend fun dispatch(action: Action) {
+    fun dispatch(action: Action) {
         post(action)
     }
 
-    suspend fun emitChange(changeEvent: Store.StoreChangeEvent) {
-        _storeChangeFlow.emit(changeEvent)
+    fun emitChange(changeEvent: StoreChangeEvent) {
+        _storeChangeFlow.value = changeEvent
     }
 
-    private suspend fun post(action: Action) {
-        _actionFlow.emit(action)
+    private fun post(action: Action) {
+        _actionFlow.value = action
     }
 }

@@ -6,13 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.fluxcomposetodoapp.actions.ActionsCreator
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
-import com.example.fluxcomposetodoapp.model.Todo
 import com.example.fluxcomposetodoapp.stores.TodoStore
 import com.example.fluxcomposetodoapp.ui.MainScreen
 import com.example.fluxcomposetodoapp.ui.theme.FluxComposeTodoAppTheme
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 /**
  * View
@@ -24,10 +20,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var actionsCreator: ActionsCreator
     private lateinit var todoStore: TodoStore
 
-    // CoroutineScope for executing coroutines in UI threads.
-    // UIスレッドでコルーチンを実行するためのCoroutineScope
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -37,12 +29,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             FluxComposeTodoAppTheme {
                 MainScreen(
-                    onAddClick = { addTodo(it) },
-                    onDestroyClick = { destroyTodo(it) },
-                    onUndoDestroyClick = { undoDestroy() },
-                    onCheckedChange = { toggleComplete(it) },
-                    onMainCheckedChange = { toggleCompleteAll() },
-                    onClearCompletedClick = { clearCompleted() },
+                    onAddClick = { actionsCreator.create(data = it) },
+                    onDestroyClick = { actionsCreator.destroy(id = it) },
+                    onUndoDestroyClick = { actionsCreator.undoDestroy() },
+                    onCheckedChange = { actionsCreator.toggleComplete(it) },
+                    onMainCheckedChange = { actionsCreator.toggleCompleteAll() },
+                    onClearCompletedClick = { actionsCreator.destroyCompleted() },
                     todoStore = todoStore
                 )
             }
@@ -56,41 +48,5 @@ class MainActivity : ComponentActivity() {
         dispatcher = Dispatcher.get()
         actionsCreator = ActionsCreator.get(dispatcher)
         todoStore = TodoStore.get(dispatcher)
-    }
-
-    private fun addTodo(data: Pair<String, Boolean>) {
-        coroutineScope.launch {
-            actionsCreator.create(data = data)
-        }
-    }
-
-    private fun destroyTodo(id: Long) {
-        coroutineScope.launch {
-            actionsCreator.destroy(id = id)
-        }
-    }
-
-    private fun undoDestroy() {
-        coroutineScope.launch {
-            actionsCreator.undoDestroy()
-        }
-    }
-
-    private fun toggleComplete(todo: Todo) {
-        coroutineScope.launch {
-            actionsCreator.toggleComplete(todo)
-        }
-    }
-
-    private fun toggleCompleteAll() {
-        coroutineScope.launch {
-            actionsCreator.toggleCompleteAll()
-        }
-    }
-
-    private fun clearCompleted() {
-        coroutineScope.launch {
-            actionsCreator.destroyCompleted()
-        }
     }
 }

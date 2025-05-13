@@ -18,14 +18,6 @@ import com.example.fluxcomposetodoapp.actions.ActionsCreator
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 import com.example.fluxcomposetodoapp.stores.TodoStore
 import com.example.fluxcomposetodoapp.ui.theme.FluxComposeTodoAppTheme
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -33,18 +25,13 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
-@OptIn(ExperimentalCoroutinesApi::class)
 class MainScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private val testDispatcher = UnconfinedTestDispatcher()
-
     @Before
     fun setup() {
-        Dispatchers.setMain(testDispatcher)
-
         val dispatcher = Dispatcher.get()
         val actionsCreator = ActionsCreator.get(dispatcher)
         val todoStore = TodoStore.get(dispatcher)
@@ -54,44 +41,27 @@ class MainScreenTest {
             FluxComposeTodoAppTheme {
                 MainScreen(
                     onAddClick = {
-                        CoroutineScope(testDispatcher).launch {
-                            actionsCreator.create(data = Pair(it.first, it.second))
-                        }
+                        actionsCreator.create(data = Pair(it.first, it.second))
                     },
                     onDestroyClick = {
-                        CoroutineScope(testDispatcher).launch {
-                            actionsCreator.destroy(id = it)
-                        }
+                        actionsCreator.destroy(id = it)
                     },
                     onUndoDestroyClick = {
-                        CoroutineScope(testDispatcher).launch {
-                            actionsCreator.undoDestroy()
-                        }
+                        actionsCreator.undoDestroy()
                     },
                     onCheckedChange = {
-                        CoroutineScope(testDispatcher).launch {
-                            actionsCreator.toggleComplete(it)
-                        }
+                        actionsCreator.toggleComplete(it)
                     },
                     onMainCheckedChange = {
-                        CoroutineScope(testDispatcher).launch {
-                            actionsCreator.toggleCompleteAll()
-                        }
+                        actionsCreator.toggleCompleteAll()
                     },
                     onClearCompletedClick = {
-                        CoroutineScope(testDispatcher).launch {
-                            actionsCreator.destroyCompleted()
-                        }
+                        actionsCreator.destroyCompleted()
                     },
                     todoStore = todoStore
                 )
             }
         }
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
     }
 
     @Test

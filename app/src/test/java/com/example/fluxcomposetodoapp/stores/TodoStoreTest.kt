@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.AfterClass
@@ -46,7 +45,7 @@ class TodoStoreTest {
     }
 
     @Test
-    fun should_create_todo_when_receive_create_action() = runTest {
+    fun should_create_todo_when_receive_create_action() {
         // Create Action
         val fakeTodoText = "New Todo"
         val fakeTodoData = Pair(fakeTodoText, false)
@@ -61,7 +60,7 @@ class TodoStoreTest {
     }
 
     @Test
-    fun destroy_should_remove_todo_and_save_to_lastDeleted() = runTest {
+    fun destroy_should_remove_todo_and_save_to_lastDeleted() {
         // Create
         val fakeTodoText = "Destroy Todo"
         val fakeTodoData = Pair(fakeTodoText, false)
@@ -82,7 +81,7 @@ class TodoStoreTest {
     }
 
     @Test
-    fun undo_destroy_should_restore_last_deleted_todo() = runTest {
+    fun undo_destroy_should_restore_last_deleted_todo() {
         // Create
         val fakeTodoText = "Restore Todo"
         val fakeTodoData = Pair(fakeTodoText, false)
@@ -115,7 +114,7 @@ class TodoStoreTest {
     }
 
     @Test
-    fun update_complete_should_change_todo_completion_status() = runTest {
+    fun update_complete_should_change_todo_completion_status() {
         // Create
         val fakeTodoText = "Change completion status todo"
         val fakeTodoData = Pair(fakeTodoText, false)
@@ -144,7 +143,7 @@ class TodoStoreTest {
     }
 
     @Test
-    fun update_complete_all_should_change_all_todo_completion_status() = runTest {
+    fun update_complete_all_should_change_all_todo_completion_status() {
         // Create
         val fakeTodoText = "Change all completion status todo"
         val fakeTodoData = Pair(fakeTodoText, false)

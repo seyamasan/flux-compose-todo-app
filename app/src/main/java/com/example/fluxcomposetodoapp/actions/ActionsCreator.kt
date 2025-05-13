@@ -23,7 +23,7 @@ class ActionsCreator private constructor(
         }
     }
 
-    suspend fun create(data: Pair<String, Boolean>) {
+    fun create(data: Pair<String, Boolean>) {
         dispatcher.dispatch(
             createAction(
                 TodoActionType.TODO_CREATE,
@@ -32,7 +32,7 @@ class ActionsCreator private constructor(
         )
     }
 
-    suspend fun destroy(id: Long) {
+    fun destroy(id: Long) {
         dispatcher.dispatch(
             createAction(
                 type = TodoActionType.TODO_DESTROY,
@@ -41,7 +41,7 @@ class ActionsCreator private constructor(
         )
     }
 
-    suspend fun undoDestroy() {
+    fun undoDestroy() {
         dispatcher.dispatch(
             createAction(
                 type = TodoActionType.TODO_UNDO_DESTROY,
@@ -50,7 +50,7 @@ class ActionsCreator private constructor(
         )
     }
 
-    suspend fun toggleComplete(todo: Todo) {
+    fun toggleComplete(todo: Todo) {
         val id = todo.id
         val actionType = if (todo.complete) {
             TodoActionType.TODO_UNDO_COMPLETE
@@ -66,7 +66,7 @@ class ActionsCreator private constructor(
         )
     }
 
-    suspend fun toggleCompleteAll() {
+    fun toggleCompleteAll() {
         dispatcher.dispatch(
             createAction(
                 type = TodoActionType.TODO_TOGGLE_COMPLETE_ALL,
@@ -75,7 +75,7 @@ class ActionsCreator private constructor(
         )
     }
 
-    suspend fun destroyCompleted() {
+    fun destroyCompleted() {
         dispatcher.dispatch(
             createAction(
                 type = TodoActionType.TODO_DESTROY_COMPLETED,

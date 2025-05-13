@@ -30,6 +30,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,27 +71,11 @@ fun MainScreen(
 
     // Subscribe to TodoStore change events.
     // TodoStoreの変更イベントを購読
-    LaunchedEffect(Unit) {
-        todoStore.storeChangeFlow.collect { _ ->
-            // Substituting a copy allows recomposition.
-            // コピーしたものを代入すると再コンポーズできる
-            itemList = todoStore.getTodos().map { it.copy() }
-
-            if (todoStore.canUndo()) {
-                scope.launch {
-                    val result = snackbarHostState
-                        .showSnackbar(
-                            message = "Element deleted.",
-                            actionLabel = "Undo",
-                            duration = SnackbarDuration.Short
-                        )
-                    when (result) {
-                        SnackbarResult.ActionPerformed -> { onUndoDestroyClick() }
-                        SnackbarResult.Dismissed -> { todoStore.resetLastDeleted() }
-                    }
-                }
-            }
-        }
+    val storeState by todoStore.storeChangeFlow.collectAsState()
+    LaunchedEffect(storeState) {
+        // Substituting a copy allows recomposition.
+        // コピーしたものを代入すると再コンポーズできる
+        itemList = todoStore.getTodos().map { it.copy() }
     }
 
     Scaffold(
@@ -179,7 +164,25 @@ fun MainScreen(
                             Text(text = item.text)
                         }
                         IconButton(
-                            onClick = { onDestroyClick(item.id) }
+                            onClick = {
+                                onDestroyClick(item.id)
+                                scope.launch {
+                                    val result = snackbarHostState
+                                        .showSnackbar(
+                                            message = "Element deleted.",
+                                            actionLabel = "Undo",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    when (result) {
+                                        SnackbarResult.ActionPerformed -> {
+                                            onUndoDestroyClick()
+                                        }
+                                        SnackbarResult.Dismissed -> {
+                                            todoStore.resetLastDeleted()
+                                        }
+                                    }
+                                }
+                            }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Delete,

@@ -8,9 +8,11 @@ import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 import com.example.fluxcomposetodoapp.model.Todo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 /**
  * Store
@@ -21,10 +23,9 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
 
     private var todos = mutableListOf<Todo>()
     private var lastDeleted: Todo? = null
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
-    private val _storeChangeFlow = MutableSharedFlow<StoreChangeEvent>()
-    val storeChangeFlow: SharedFlow<StoreChangeEvent> = _storeChangeFlow
+    private val _storeChangeFlow = MutableStateFlow<StoreChangeEvent?>(null)
+    val storeChangeFlow: StateFlow<StoreChangeEvent?> = _storeChangeFlow.asStateFlow()
 
     companion object {
         private var instance: TodoStore? = null
@@ -40,21 +41,17 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
     init {
         // Subscribe to Dispatcher actionFlow
         // DispatcherのactionFlowを購読
-        coroutineScope.launch {
-            // collect is a suspend function and must be executed in a coroutine.
-            // collect は suspend 関数であるため、コルーチン内で実行する必要があります。
-            dispatcher.actionFlow.collect { action ->
-                onAction(action)
+        dispatcher.actionFlow.onEach { action ->
+            action?.let {
+                onAction(it)
             }
-        }
+        }.launchIn(CoroutineScope(Dispatchers.Main))
 
         // Subscribe to Dispatcher storeChangeFlow
         // DispatcherのstoreChangeFlowを購読
-        coroutineScope.launch {
-            dispatcher.storeChangeFlow.collect { storeChangeEvent ->
-                _storeChangeFlow.emit(storeChangeEvent)
-            }
-        }
+        dispatcher.storeChangeFlow.onEach { storeChangeEvent ->
+            _storeChangeFlow.value = storeChangeEvent
+        }.launchIn(CoroutineScope(Dispatchers.Main))
     }
 
     fun getTodos(): List<Todo> = todos
@@ -65,15 +62,17 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
         lastDeleted = null
     }
 
-    override suspend fun onAction(action: Action) {
+    override fun onAction(action: Action) {
         when (action.type) {
             TodoActionType.TODO_CREATE -> {
-                val data = action.data[TodoActionKeys.KEY_TEXT] as Pair<*, *> // first(text: String), second(complete: Boolean)
+                val data = action.data[TodoActionKeys.KEY_TEXT] as? Pair<*, *>
+                    ?: return  // first(text: String), second(complete: Boolean)
                 create(data)
                 emitStoreChange()
             }
             TodoActionType.TODO_DESTROY -> {
-                val id = action.data[TodoActionKeys.KEY_ID] as Long
+                val id = action.data[TodoActionKeys.KEY_ID] as? Long
+                    ?: return
                 destroy(id)
                 emitStoreChange()
             }
@@ -82,12 +81,14 @@ class TodoStore(dispatcher: Dispatcher) : Store(dispatcher) {
                 emitStoreChange()
             }
             TodoActionType.TODO_COMPLETE -> {
-                val id = action.data[TodoActionKeys.KEY_ID] as Long
+                val id = action.data[TodoActionKeys.KEY_ID] as? Long
+                    ?: return
                 updateComplete(id, true)
                 emitStoreChange()
             }
             TodoActionType.TODO_UNDO_COMPLETE -> {
-                val id = action.data[TodoActionKeys.KEY_ID] as Long
+                val id = action.data[TodoActionKeys.KEY_ID] as? Long
+                    ?: return
                 updateComplete(id, false)
                 emitStoreChange()
             }

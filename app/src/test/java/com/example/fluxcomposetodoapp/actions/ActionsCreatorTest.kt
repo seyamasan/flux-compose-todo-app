@@ -3,9 +3,8 @@ package com.example.fluxcomposetodoapp.actions
 import com.example.fluxcomposetodoapp.dispatcher.Dispatcher
 import com.example.fluxcomposetodoapp.model.Todo
 import com.google.common.truth.Truth.assertThat
-import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.test.runTest
+import io.mockk.verify
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -30,16 +29,15 @@ class ActionsCreatorTest {
     }
 
     @Test
-    fun create_should_dispatch_create_action() = runTest {
+    fun create_should_dispatch_create_action(){
         val todoText = "New Todo"
         val todoData = Pair(todoText, false)
 
         actionsCreator.create(todoData)
 
-        // Start a coroutine validation block.(コルーチンの検証ブロックを開始)
-        coVerify {
-            // Confirm that the dispatch function has been called.(dispatch関数が呼び出されたことを確認)
-            // Check that the contents of the Action passed to dispatch are correct.(dispatchに渡されたActionの中身が合っているか確認)
+        // Confirm that the dispatch function has been called.(dispatch関数が呼び出されたことを確認)
+        // Check that the contents of the Action passed to dispatch are correct.(dispatchに渡されたActionの中身が合っているか確認)
+        verify {
             dispatcher.dispatch(
                 match { action ->
                     assertThat(action.type).isEqualTo(TodoActionType.TODO_CREATE)
@@ -51,12 +49,12 @@ class ActionsCreatorTest {
     }
 
     @Test
-    fun destroy_should_dispatch_destroy_action() = runTest {
+    fun destroy_should_dispatch_destroy_action() {
         val todoId = 1L
 
         actionsCreator.destroy(todoId)
 
-        coVerify {
+        verify {
             dispatcher.dispatch(
                 match { action ->
                     assertThat(action.type).isEqualTo(TodoActionType.TODO_DESTROY)
@@ -68,10 +66,10 @@ class ActionsCreatorTest {
     }
 
     @Test
-    fun undo_destroy_should_dispatch_undo_destroy_action() = runTest {
+    fun undo_destroy_should_dispatch_undo_destroy_action() {
         actionsCreator.undoDestroy()
 
-        coVerify {
+        verify {
             dispatcher.dispatch(
                 match { action ->
                     assertThat(action.type).isEqualTo(TodoActionType.TODO_UNDO_DESTROY)
@@ -83,12 +81,12 @@ class ActionsCreatorTest {
     }
 
     @Test
-    fun toggle_complete_should_dispatch_correct_action() = runTest {
+    fun toggle_complete_should_dispatch_correct_action() {
         val incompleteTodo = Todo(id = 1L, text = "Incomplete Todo", complete = false)
 
         actionsCreator.toggleComplete(incompleteTodo)
 
-        coVerify {
+        verify {
             dispatcher.dispatch(
                 match { action ->
                     assertThat(action.type).isEqualTo(TodoActionType.TODO_COMPLETE)
@@ -100,10 +98,10 @@ class ActionsCreatorTest {
     }
 
     @Test
-    fun toggle_complete_all_should_dispatch_toggle_complete_all_action() = runTest {
+    fun toggle_complete_all_should_dispatch_toggle_complete_all_action() {
         actionsCreator.toggleCompleteAll()
 
-        coVerify {
+        verify {
             dispatcher.dispatch(
                 match { action ->
                     assertThat(action.type).isEqualTo(TodoActionType.TODO_TOGGLE_COMPLETE_ALL)
@@ -115,10 +113,10 @@ class ActionsCreatorTest {
     }
 
     @Test
-    fun destroy_completed_should_dispatch_destroy_completed_action() = runTest {
+    fun destroy_completed_should_dispatch_destroy_completed_action() {
         actionsCreator.destroyCompleted()
 
-        coVerify {
+        verify {
             dispatcher.dispatch(
                 match { action ->
                     assertThat(action.type).isEqualTo(TodoActionType.TODO_DESTROY_COMPLETED)
