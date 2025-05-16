@@ -19,15 +19,16 @@ This project is an Android application using Kotlin, Flux, Jetpack Compose, Stat
 
 ### View -> Action
 
-<img width="1243" alt="view_and_action" src="https://github.com/user-attachments/assets/688bee66-495a-4d19-a647-a9c4cf3ed1cc" />
+<img width="1201" alt="view_and_action" src="https://github.com/user-attachments/assets/4ddba92e-a781-4cd7-b9e3-3eab705f358c" />
+
 
 Actions are created in ActionsCreator for each event in the View.
 
 Viewの各イベントに応じてActionsCreatorにてActionを作成しています。
 
-Depending on the action, a callback function receives the value from the View and passes it to the ActionsCreator.
+Depending on the event, a callback function receives the value from the View and passes it to the ActionsCreator.
 
-アクションによってはコールバック関数でViewから値受け取り、ActionsCreatorに渡しています。
+イベントによってはコールバック関数でViewから値受け取り、ActionsCreatorに渡しています。
 
 ## References
 
