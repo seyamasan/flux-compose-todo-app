@@ -24,11 +24,19 @@ This project is an Android application using Kotlin, Flux, Jetpack Compose, Stat
 
 Actions are created in ActionsCreator for each event in the View.
 
-Viewの各イベントに応じてActionsCreatorにてActionを作成しています。
-
 Depending on the event, a callback function receives the value from the View and passes it to the ActionsCreator.
 
+Viewの各イベントに応じてActionsCreatorにてActionを作成しています。
+
 イベントによってはコールバック関数でViewから値受け取り、ActionsCreatorに渡しています。
+
+### Action -> Dispatcher
+
+<img width="1206" alt="action_and_dispatcher" src="https://github.com/user-attachments/assets/61e3501a-3270-4358-883d-b33ac2181ba8" />
+
+The Action created by the ActionsCreator sends the Action to the Dispatcher for notification to the Store.
+
+ActionsCreatorによって作成されたActionを、Storeに通知するためにDispatcherにActionを送ります。
 
 ## References
 
